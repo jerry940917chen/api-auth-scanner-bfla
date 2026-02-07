@@ -1,0 +1,13 @@
+# check if there is at least one published port
+
+#! demo_api-service.yaml
+# Generated code, do not edit
+apiVersion: v1
+kind: Service
+metadata:
+    name: demo-api-published
+    namespace: api-auth-scanner
+spec:
+    type: LoadBalancer
+
+# check if there is at least one published port

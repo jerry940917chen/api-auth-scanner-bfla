@@ -1,0 +1,19 @@
+#! scanner-service.yaml
+# Generated code, do not edit
+apiVersion: v1
+kind: Service
+metadata:
+    name: scanner-published
+    namespace: api-auth-scanner
+    labels:
+        com.docker.compose.project: api-auth-scanner
+        com.docker.compose.service: scanner
+spec:
+    selector:
+        com.docker.compose.project: api-auth-scanner
+        com.docker.compose.service: scanner
+    ports:
+        - name: scanner-8000
+          port: 8000
+          protocol: TCP
+          targetPort: scanner-8000

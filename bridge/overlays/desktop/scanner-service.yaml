@@ -1,0 +1,9 @@
+#! scanner-service.yaml
+# Generated code, do not edit
+apiVersion: v1
+kind: Service
+metadata:
+    name: scanner-published
+    namespace: api-auth-scanner
+spec:
+    type: LoadBalancer

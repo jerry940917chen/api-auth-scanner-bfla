@@ -1,0 +1,9 @@
+#! scanner-scanner_data-persistentVolumeClaim.yaml
+# Generated code, do not edit
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+    name: scanner-scanner-data
+    namespace: api-auth-scanner
+spec:
+    storageClassName: "hostpath" # see docker/desktop-storage-provisioner

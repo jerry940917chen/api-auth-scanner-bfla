@@ -1,0 +1,9 @@
+#! scanner-C:\Users\jerry\.gemini\antigravity\scratch\api-auth-scanner\sample_reports-persistentVolumeClaim.yaml
+# Generated code, do not edit
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+    name: scanner-c--users-jerry--gemini-antigravity-scratch-api-auth-scanner-sample-reports
+    namespace: api-auth-scanner
+spec:
+    storageClassName: "hostpath" # see docker/desktop-storage-provisioner

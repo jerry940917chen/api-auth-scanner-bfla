@@ -1,0 +1,23 @@
+# check if there is at least one published port
+
+#! demo_api-service.yaml
+# Generated code, do not edit
+apiVersion: v1
+kind: Service
+metadata:
+    name: demo-api-published
+    namespace: api-auth-scanner
+    labels:
+        com.docker.compose.project: api-auth-scanner
+        com.docker.compose.service: demo_api
+spec:
+    selector:
+        com.docker.compose.project: api-auth-scanner
+        com.docker.compose.service: demo_api
+    ports:
+        - name: demo-api-8001
+          port: 8001
+          protocol: TCP
+          targetPort: demo-api-8000
+
+# check if there is at least one published port

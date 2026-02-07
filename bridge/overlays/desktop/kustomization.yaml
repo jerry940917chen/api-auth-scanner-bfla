@@ -1,0 +1,11 @@
+#! kustomization.yaml
+# Generated code, do not edit
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+    - ../../base
+patches:
+    - path: demo_api-service.yaml
+    - path: scanner-C:\Users\jerry\.gemini\antigravity\scratch\api-auth-scanner\sample_reports-persistentVolumeClaim.yaml
+    - path: scanner-scanner_data-persistentVolumeClaim.yaml
+    - path: scanner-service.yaml

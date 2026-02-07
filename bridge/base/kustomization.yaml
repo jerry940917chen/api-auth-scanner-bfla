@@ -1,0 +1,15 @@
+#! kustomization.yaml
+# Generated code, do not edit
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+    - 0-api-auth-scanner-namespace.yaml
+    - demo_api-deployment.yaml
+    - demo_api-expose.yaml
+    - demo_api-service.yaml
+    - scanner-C:\Users\jerry\.gemini\antigravity\scratch\api-auth-scanner\sample_reports-persistentVolumeClaim.yaml
+    - scanner-deployment.yaml
+    - scanner-expose.yaml
+    - scanner-net-network-policy.yaml
+    - scanner-scanner_data-persistentVolumeClaim.yaml
+    - scanner-service.yaml

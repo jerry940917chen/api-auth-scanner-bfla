@@ -1,0 +1,18 @@
+#! demo_api-expose.yaml
+# Generated code, do not edit
+apiVersion: v1
+kind: Service
+metadata:
+    name: demo-api
+    namespace: api-auth-scanner
+    labels:
+        com.docker.compose.project: api-auth-scanner
+        com.docker.compose.service: demo_api
+spec:
+    selector:
+        com.docker.compose.project: api-auth-scanner
+        com.docker.compose.service: demo_api
+    ports:
+        - name: demo-api-8000
+          port: 8000
+          targetPort: demo-api-8000

@@ -1,0 +1,49 @@
+#! scanner-deployment.yaml
+# Generated code, do not edit
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+    name: scanner
+    namespace: api-auth-scanner
+    labels:
+        com.docker.compose.project: api-auth-scanner
+        com.docker.compose.service: scanner
+spec:
+    replicas: 1
+    selector:
+        matchLabels:
+            com.docker.compose.project: api-auth-scanner
+            com.docker.compose.service: scanner
+    strategy:
+        type: Recreate
+    template:
+        metadata:
+            labels:
+                com.docker.compose.project: api-auth-scanner
+                com.docker.compose.service: scanner
+                com.docker.compose.network.scanner-net: "true"
+        spec:
+            containers:
+                - name: scanner
+                  image: api-auth-scanner-scanner
+                  imagePullPolicy: IfNotPresent
+                  env:
+                    - name: DATABASE_URL
+                      value: "sqlite:///./data/scanner.db"
+                    - name: DEMO_API_URL
+                      value: "http://demo_api:8000"
+                  ports:
+                    - name: scanner-8000
+                      containerPort: 8000
+                  volumeMounts:
+                    - name: app-data
+                      mountPath: /app/data
+                    - name: app-sample-reports
+                      mountPath: /app/sample_reports
+            volumes:
+                - name: app-data
+                  persistentVolumeClaim:
+                    claimName: scanner-scanner-data
+                - name: app-sample-reports
+                  hostPath:
+                    path: C:\Users\jerry\.gemini\antigravity\scratch\api-auth-scanner\sample_reports

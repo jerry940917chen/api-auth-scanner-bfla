@@ -1,0 +1,18 @@
+#! scanner-C:\Users\jerry\.gemini\antigravity\scratch\api-auth-scanner\sample_reports-persistentVolumeClaim.yaml
+# Generated code, do not edit
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+    name: scanner-c--users-jerry--gemini-antigravity-scratch-api-auth-scanner-sample-reports
+    namespace: api-auth-scanner
+    labels:
+        com.docker.compose.service: scanner
+        com.docker.compose.volume: C:\Users\jerry\.gemini\antigravity\scratch\api-auth-scanner\sample_reports
+spec:
+    accessModes:
+        # TODO would need to check which services use this volume
+        - ReadWriteOnce
+    volumeMode: Filesystem
+    resources:
+        requests:
+            storage: 100Mi

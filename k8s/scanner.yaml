@@ -1,0 +1,47 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: scanner
+  labels:
+    app: scanner
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: scanner
+  template:
+    metadata:
+      labels:
+        app: scanner
+    spec:
+      containers:
+      - name: scanner
+        image: api-auth-scanner:latest
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 8000
+        env:
+        - name: DATABASE_URL
+          value: "sqlite:///./data/scanner.db"
+        - name: DEMO_API_URL
+          value: "http://demo-api:8000"
+        volumeMounts:
+        - name: scanner-data
+          mountPath: /app/data
+      volumes:
+      - name: scanner-data
+        emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: scanner
+spec:
+  type: NodePort
+  selector:
+    app: scanner
+  ports:
+    - protocol: TCP
+      port: 8000
+      targetPort: 8000
+      nodePort: 30080

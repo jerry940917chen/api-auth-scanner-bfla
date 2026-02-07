@@ -1,0 +1,35 @@
+#! demo_api-deployment.yaml
+# Generated code, do not edit
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+    name: demo-api
+    namespace: api-auth-scanner
+    labels:
+        com.docker.compose.project: api-auth-scanner
+        com.docker.compose.service: demo_api
+spec:
+    replicas: 1
+    selector:
+        matchLabels:
+            com.docker.compose.project: api-auth-scanner
+            com.docker.compose.service: demo_api
+    strategy:
+        type: Recreate
+    template:
+        metadata:
+            labels:
+                com.docker.compose.project: api-auth-scanner
+                com.docker.compose.service: demo_api
+                com.docker.compose.network.scanner-net: "true"
+        spec:
+            containers:
+                - name: demo-api
+                  image: api-auth-scanner-demo_api
+                  imagePullPolicy: IfNotPresent
+                  env:
+                    - name: DEMO_API_SECRET_KEY
+                      value: "demosecret"
+                  ports:
+                    - name: demo-api-8000
+                      containerPort: 8000

@@ -1,0 +1,8 @@
+#! 0-api-auth-scanner-namespace.yaml
+# Generated code, do not edit
+apiVersion: v1
+kind: Namespace
+metadata:
+    name: api-auth-scanner
+    labels:
+        com.docker.compose.project: api-auth-scanner
