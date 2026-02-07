@@ -25,7 +25,11 @@ class ScannerEngine:
         logger.info(f"Scan {scan_id}: Starting scan execution.")
         
         # Determine options (can be stored in scan model in future, using defaults for now)
-        options = ScanOptions() 
+        # Determine options 
+        if scan.scan_options:
+            options = ScanOptions(**scan.scan_options)
+        else:
+            options = ScanOptions() 
         
         self.repo.update_status(scan_id, "running")
         
@@ -82,6 +86,10 @@ class ScannerEngine:
                     if scan.status == "canceled":
                         logger.info(f"Scan {scan_id}: Cancellation detected. Stopping scan.")
                         break
+
+                    # Debug prints
+                    if tester_profile:
+                         print(f"DEBUG: Checking {ep['path']} with profile {tester_profile.name}, options={options.include_paths}", flush=True)
 
                     if (options.include_paths or "/admin" in ep["path"] or "/debug" in ep["path"]) and tester_profile:
                         # BFLA Check
@@ -146,6 +154,7 @@ class ScannerEngine:
                     headers=headers, 
                     json=json_body
                 )
+                print(f"DEBUG: {method} {path} -> {resp.status_code}", flush=True)
                 
                 if check_bfla_vulnerability(resp):
                     logger.info(f"Scan {scan_id}: VULNERABILITY FOUND at {method} {path}")

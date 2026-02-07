@@ -81,7 +81,7 @@ Write-Host "`n[4] Starting Scan / 啟動掃描..." -ForegroundColor Yellow
 # - 加入 /_debug 與 /createdb（Misconfig / Debug）
 $scanBodyObj = @{
     profiles = @(
-        @{ name = "guest"; role = "anonymous"; token = $null }
+        @{ name = "guest"; role = "anonymous"; token = "" }
     )
     scan_options = @{
         timeout_seconds = 15

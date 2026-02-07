@@ -43,6 +43,7 @@ class Scan(Base):
     # Store summary counts as JSON or individual columns? 
     # JSON is flexible for MVP.
     summary_counts = Column(JSON, default={}) 
+    scan_options = Column(JSON, default={}) 
 
     project = relationship("Project", back_populates="scans")
     vulnerabilities = relationship("Vulnerability", back_populates="scan")

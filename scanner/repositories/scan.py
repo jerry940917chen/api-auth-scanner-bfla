@@ -8,9 +8,9 @@ class ScanRepository(BaseRepository[Scan]):
     def __init__(self, db: Session):
         super().__init__(db, Scan)
 
-    def create_scan(self, project_id: int, profiles_data: List[dict]) -> Scan:
+    def create_scan(self, project_id: int, profiles_data: List[dict], scan_options: dict = None) -> Scan:
         """Atomic creation of scan and its profiles."""
-        scan = Scan(project_id=project_id, status="queued")
+        scan = Scan(project_id=project_id, status="queued", scan_options=scan_options or {})
         self.db.add(scan)
         self.db.commit() # Commit first to get ID
         self.db.refresh(scan)
