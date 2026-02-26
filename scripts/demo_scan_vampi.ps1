@@ -4,13 +4,13 @@
 $ErrorActionPreference = "Stop"
 
 # Scanner API（跑在宿主機 8000）
-$ScannerUrl    = "http://localhost:8000"
+$ScannerUrl    = "http://localhost:9000"
 
 # vAmPI：scanner 容器內要用 service name + container port
 $VampiUrl      = "http://vampi:5000"
 
 # vAmPI：宿主機檢查用
-$VampiLocalUrl = "http://localhost:5000"
+$VampiLocalUrl = "http://localhost:9001"
 
 Write-Host "=== vAmPI Security Scan Demo / vAmPI 安全掃描演示 ===" -ForegroundColor Cyan
 Write-Host "ScannerUrl    : $ScannerUrl" -ForegroundColor DarkGray

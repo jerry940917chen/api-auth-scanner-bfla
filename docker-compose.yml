@@ -4,7 +4,7 @@ services:
       context: .
       dockerfile: Dockerfile
     ports:
-      - "8000:8000"
+      - "9000:8000"
     environment:
       - DATABASE_URL=sqlite:///./data/scanner.db
       - DEMO_API_URL=http://demo_api:8000
@@ -22,7 +22,7 @@ services:
     image: erev0s/vampi:latest
     container_name: vampi
     ports:
-      - "5000:5000"
+      - "9001:5000"
     environment:
       - ENV_file=False
     networks:
@@ -33,7 +33,7 @@ services:
       context: ./demo_api
       dockerfile: Dockerfile
     ports:
-      - "8001:8000"
+      - "9002:8000"
     environment:
       - DEMO_API_SECRET_KEY=demosecret # Default research key; CHANGE FOR PRODUCTION
     networks:

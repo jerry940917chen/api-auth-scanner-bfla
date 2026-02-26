@@ -4,8 +4,8 @@ import traceback
 import logging
 from typing import List, Dict, Any, Optional
 from scanner.repositories import ScanRepository
-from core.openapi_parser import extract_endpoints
-from core.authorization import check_bfla_vulnerability
+from core.openapi_parser import extract_endpoints, find_bola_candidates
+from core.authorization import check_bfla_vulnerability, check_bola_vulnerability
 from api.schemas import ScanOptions
 
 # Setup logger
@@ -104,6 +104,19 @@ class ScannerEngine:
                             )
                         )
 
+                    # BOLA Check
+                    if "{" in ep["path"] and "}" in ep["path"] and tester_profile:
+                        tasks.append(
+                            self._check_bola(
+                                client,
+                                semaphore,
+                                scan_id,
+                                project.base_url,
+                                ep,
+                                tester_profile.token
+                            )
+                        )
+
                 if scan.status != "canceled":
                     results = await asyncio.gather(*tasks, return_exceptions=True)
                     
@@ -145,7 +158,9 @@ class ScannerEngine:
                 path = endpoint["path"]
                 logger.debug(f"Scan {scan_id}: Checking {method} {path}")
                 
-                headers = {"Authorization": f"Bearer {token}"}
+                headers = {}
+                if token:
+                    headers["Authorization"] = f"Bearer {token}"
                 json_body = {"user_id": 2} if method in ["POST", "PUT", "PATCH"] else None
                 
                 resp = await client.request(
@@ -171,4 +186,55 @@ class ScannerEngine:
                 # Log individual endpoint failure but don't fail entire scan
                 logger.error(f"Error scanning {endpoint['path']}: {e}")
                 pass
+    async def _check_bola(self, client, semaphore, scan_id, base_url, endpoint, token):
+        async with semaphore:
+            try:
+                method = endpoint["method"]
+                path = endpoint["path"]
+                vuln_found = False
+                test_path = path
+                
+                headers = {}
+                if token:
+                    headers["Authorization"] = f"Bearer {token}"
+                
+                # Simple BOLA Mutation: Replace {id} or {username} with a known common victim identifier
+                if "{username}" in path:
+                    # Try a few common usernames in vAmPI
+                    for victim in ["admin", "name1", "vampi"]:
+                        test_path = path.replace("{username}", victim)
+                        logger.debug(f"Scan {scan_id}: Checking BOLA {method} {test_path}")
+                        resp = await client.request(method, f"{base_url}{test_path}", headers=headers)
+                        print(f"DEBUG BOLA: {method} {test_path} -> {resp.status_code}", flush=True)
+                        if check_bola_vulnerability(resp):
+                            vuln_found = True
+                            break
+                elif "{id}" in path:
+                    for victim in ["1", "2", "0"]:
+                        test_path = path.replace("{id}", victim)
+                        logger.debug(f"Scan {scan_id}: Checking BOLA {method} {test_path}")
+                        resp = await client.request(method, f"{base_url}{test_path}", headers=headers)
+                        if check_bola_vulnerability(resp):
+                            vuln_found = True
+                            break
+                elif "{" in path:
+                    import re
+                    test_path = re.sub(r'\{.*?\}', "1", path)
+                    resp = await client.request(method, f"{base_url}{test_path}", headers=headers)
+                    if check_bola_vulnerability(resp):
+                        vuln_found = True
+                
+                if vuln_found:
+                    logger.info(f"Scan {scan_id}: BOLA VULNERABILITY FOUND at {method} {test_path}")
+                    vuln_data = {
+                        "vuln_type": "BOLA",
+                        "endpoint": f"{method} {test_path}",
+                        "description": "Unauthorized access to object/resource belonging to others",
+                        "severity": "High",
+                        "evidence": f"Status: {resp.status_code}"
+                    }
+                    self.repo.add_vulnerability(scan_id, vuln_data)
+                    return vuln_data
+            except Exception as e:
+                logger.error(f"Error scanning BOLA {endpoint['path']}: {e}")
         return None
