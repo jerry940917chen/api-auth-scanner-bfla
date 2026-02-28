@@ -1,0 +1,639 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>API Security Audit Report</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;700&family=JetBrains+Mono:wght@400;600&display=swap');
+
+        @page {
+            size: A4;
+            margin: 0;
+
+            @bottom-right {
+                content: "Page " counter(page) " of " counter(pages);
+                font-size: 9px;
+                color: #999;
+                margin-bottom: 18px;
+                margin-right: 36px;
+            }
+        }
+
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            color: #1e293b;
+            line-height: 1.65;
+            margin: 0;
+            padding: 0;
+            font-size: 13px;
+        }
+
+        /* ===== COVER PAGE ===== */
+        .cover-page {
+            height: 297mm;
+            background: linear-gradient(150deg, #0f172a 0%, #1e3a5f 50%, #0d2137 100%);
+            color: white;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            position: relative;
+        }
+
+        .cover-page::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: repeating-linear-gradient(0deg, transparent, transparent 40px,
+                    rgba(255, 255, 255, 0.01) 40px, rgba(255, 255, 255, 0.01) 41px);
+        }
+
+        .cover-logo {
+            font-size: 70px;
+            margin-bottom: 24px;
+        }
+
+        .cover-title {
+            font-size: 38px;
+            font-weight: 700;
+            letter-spacing: 3px;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+        }
+
+        .cover-subtitle {
+            font-size: 18px;
+            font-weight: 300;
+            opacity: 0.75;
+            margin-bottom: 70px;
+        }
+
+        .cover-details {
+            width: 65%;
+            border-top: 1px solid rgba(255, 255, 255, 0.18);
+            padding-top: 28px;
+            font-size: 15px;
+            text-align: left;
+        }
+
+        .cover-details p {
+            margin: 9px 0;
+        }
+
+        .confidential-tag {
+            background: #dc2626;
+            color: white;
+            padding: 6px 22px;
+            border-radius: 4px;
+            font-weight: 700;
+            font-size: 12px;
+            letter-spacing: 1px;
+            margin-bottom: 44px;
+        }
+
+        .ai-powered-badge {
+            position: absolute;
+            bottom: 40px;
+            right: 50px;
+            background: rgba(59, 130, 246, 0.2);
+            border: 1px solid rgba(59, 130, 246, 0.4);
+            color: #93c5fd;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 11px;
+        }
+
+        /* ===== CONTENT ===== */
+        .content-container {
+            padding: 2.2cm 2.5cm;
+            page-break-before: always;
+        }
+
+        h2 {
+            color: #0f2a6c;
+            border-left: 5px solid #1d4ed8;
+            padding-left: 14px;
+            margin-top: 44px;
+            font-size: 20px;
+        }
+
+        h3 {
+            color: #1e293b;
+            font-size: 17px;
+            margin-bottom: 12px;
+        }
+
+        .executive-summary {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-left: 4px solid #1d4ed8;
+            padding: 22px 26px;
+            border-radius: 6px;
+            margin-bottom: 28px;
+        }
+
+        /* ===== SUMMARY TABLE ===== */
+        .summary-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 18px 0;
+        }
+
+        .summary-table th,
+        .summary-table td {
+            border: 1px solid #e2e8f0;
+            padding: 11px 14px;
+            text-align: center;
+        }
+
+        .summary-table th {
+            background: #0f2a6c;
+            color: white;
+            font-weight: 700;
+            font-size: 12px;
+            letter-spacing: 0.5px;
+        }
+
+        .summary-table td.high {
+            color: #dc2626;
+            font-weight: 700;
+        }
+
+        .summary-table td.medium {
+            color: #d97706;
+            font-weight: 700;
+        }
+
+        .summary-table td.low {
+            color: #2563eb;
+            font-weight: 700;
+        }
+
+        /* ===== VULNERABILITY ITEMS ===== */
+        .vuln-item {
+            margin-bottom: 52px;
+            page-break-inside: avoid;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .vuln-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #f8fafc;
+            padding: 16px 20px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .vuln-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: #0f2a6c;
+        }
+
+        .badge-group {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .severity-badge {
+            padding: 3px 12px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            color: white;
+        }
+
+        .sev-high {
+            background: #dc2626;
+        }
+
+        .sev-medium {
+            background: #d97706;
+        }
+
+        .sev-low {
+            background: #2563eb;
+        }
+
+        .priority-badge {
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-size: 10px;
+            font-weight: 700;
+            border: 1px solid currentColor;
+        }
+
+        .priority-immediate {
+            color: #dc2626;
+        }
+
+        .priority-high {
+            color: #d97706;
+        }
+
+        .priority-medium {
+            color: #2563eb;
+        }
+
+        .priority-low {
+            color: #6b7280;
+        }
+
+        .vuln-body {
+            padding: 20px 22px;
+        }
+
+        /* ===== SECTION BLOCKS ===== */
+        .section-block {
+            margin-bottom: 18px;
+        }
+
+        .section-label {
+            font-size: 11px;
+            font-weight: 700;
+            color: #475569;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            display: block;
+            margin-bottom: 7px;
+            padding-bottom: 4px;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        .section-text {
+            font-size: 13px;
+            color: #334155;
+            line-height: 1.65;
+            text-align: justify;
+        }
+
+        /* ===== IMPACT BLOCK ===== */
+        .impact-block {
+            background: #fef2f2;
+            border: 1px solid #fecaca;
+            border-left: 3px solid #dc2626;
+            padding: 13px 16px;
+            border-radius: 4px;
+            margin-bottom: 18px;
+        }
+
+        /* ===== REMEDIATION STEPS ===== */
+        .remediation-block {
+            background: #f0fdf4;
+            border: 1px solid #bbf7d0;
+            border-left: 3px solid #16a34a;
+            padding: 15px 18px;
+            border-radius: 4px;
+            margin-bottom: 18px;
+        }
+
+        .remediation-block .section-label {
+            color: #15803d;
+        }
+
+        .remediation-steps {
+            margin: 0;
+            padding-left: 18px;
+            color: #166534;
+        }
+
+        .remediation-steps li {
+            margin-bottom: 5px;
+            font-size: 13px;
+        }
+
+        /* ===== CODE BLOCK ===== */
+        .code-block-wrapper {
+            background: #0f172a;
+            border-radius: 6px;
+            overflow: hidden;
+            margin-bottom: 18px;
+        }
+
+        .code-block-header {
+            background: #1e293b;
+            padding: 6px 14px;
+            font-size: 10px;
+            color: #94a3b8;
+            font-family: 'JetBrains Mono', monospace;
+            letter-spacing: 0.5px;
+        }
+
+        .code-block-body {
+            padding: 14px 16px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 11.5px;
+            color: #e2e8f0;
+            white-space: pre-wrap;
+            line-height: 1.55;
+        }
+
+        /* ===== COMPLIANCE BLOCK ===== */
+        .compliance-block {
+            background: #eff6ff;
+            border: 1px solid #bfdbfe;
+            border-left: 3px solid #1d4ed8;
+            padding: 13px 16px;
+            border-radius: 4px;
+            margin-bottom: 18px;
+        }
+
+        .compliance-block .section-label {
+            color: #1e40af;
+        }
+
+        .compliance-text {
+            font-size: 12.5px;
+            color: #1e3a8a;
+        }
+
+        /* ===== ENDPOINT TAG ===== */
+        .endpoint-tag {
+            display: inline-block;
+            background: #f1f5f9;
+            border: 1px solid #cbd5e1;
+            border-radius: 4px;
+            padding: 3px 9px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 12px;
+            color: #334155;
+            margin-bottom: 12px;
+        }
+
+        /* ===== EVIDENCE ===== */
+        .evidence-block {
+            background: #fffbeb;
+            border: 1px solid #fde68a;
+            border-radius: 4px;
+            padding: 10px 14px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 11px;
+            color: #92400e;
+            word-break: break-all;
+            margin-bottom: 18px;
+        }
+
+        /* ===== AI LABEL ===== */
+        .ai-label {
+            display: inline-block;
+            background: linear-gradient(90deg, #6366f1, #3b82f6);
+            color: white;
+            font-size: 9px;
+            font-weight: 700;
+            padding: 2px 7px;
+            border-radius: 8px;
+            letter-spacing: 0.5px;
+            margin-left: 6px;
+            vertical-align: middle;
+        }
+
+        /* ===== DIVIDER ===== */
+        .section-divider {
+            border: none;
+            border-top: 1px solid #f1f5f9;
+            margin: 18px 0;
+        }
+
+        /* ===== FOOTER ===== */
+        .report-footer {
+            position: fixed;
+            bottom: 14px;
+            left: 46px;
+            font-size: 9px;
+            color: #cbd5e1;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- 封面 -->
+    <div class="cover-page">
+        <div class="confidential-tag">PROPRIETARY & CONFIDENTIAL — 機密文件</div>
+        <div class="cover-logo">🛡️</div>
+        <h1 class="cover-title">API Security Audit</h1>
+        <h2 class="cover-subtitle">企業級 API 安全稽核報告</h2>
+
+        <div class="cover-details">
+            <p><strong>專案名稱 (Project):</strong>&nbsp;&nbsp;{{ project_name }}</p>
+            <p><strong>目標位址 (Base URL):</strong>&nbsp;&nbsp;{{ base_url }}</p>
+            <p><strong>稽核編號 (Audit ID):</strong>&nbsp;&nbsp;#{{ scan_id }}</p>
+            <p><strong>生成日期 (Date):</strong>&nbsp;&nbsp;{{ generated_at }}</p>
+        </div>
+
+        <div class="ai-powered-badge">✨ AI-Powered by GPT-4 · OWASP API Top 10</div>
+    </div>
+
+    <!-- 內容 -->
+    <div class="content-container">
+
+        <!-- 執行摘要 -->
+        <h2>1. 執行摘要 (Executive Summary)</h2>
+        <div class="executive-summary">
+            <p>
+                本報告記錄了對 <strong>{{ project_name }}</strong>（<code>{{ base_url }}</code>）進行自動化 API 安全稽核的完整發現。
+                本次稽核遵循 <strong>OWASP API Security Top 10 (2023)</strong> 標準，涵蓋授權缺失、資料洩漏、安全設定錯誤等風險類別，
+                並透過 <strong>AI（GPT）語意分析</strong>生成個別化修復方案，提供可立即執行的技術建議。
+            </p>
+            <p>
+                本次評測識別 <strong>{{ vulnerabilities|length }}</strong> 個安全發現。所有高危 (High) 項目建議
+                <strong>立即進行修補</strong>，中低危項目請納入下次開發衝刺的修復計劃。
+            </p>
+        </div>
+
+        <!-- 統計表格 -->
+        <table class="summary-table">
+            <thead>
+                <tr>
+                    <th>風險類別</th>
+                    <th>嚴重等級</th>
+                    <th>數量</th>
+                    <th>建議優先級</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Critical / High-Risk Findings</td>
+                    <td class="high">🔴 高 (High)</td>
+                    <td>{{ summary.High | default(0) }}</td>
+                    <td><strong>立即修補 (Immediate)</strong></td>
+                </tr>
+                <tr>
+                    <td>Medium-Risk Findings</td>
+                    <td class="medium">🟡 中 (Medium)</td>
+                    <td>{{ summary.Medium | default(0) }}</td>
+                    <td>計劃修補 (Planned &lt; 30d)</td>
+                </tr>
+                <tr>
+                    <td>Low-Risk / Informational</td>
+                    <td class="low">🔵 低 (Low)</td>
+                    <td>{{ summary.Low | default(0) }}</td>
+                    <td>例行追蹤 (Routine)</td>
+                </tr>
+                <tr style="background:#f8fafc; font-weight: 700;">
+                    <td>Total Findings</td>
+                    <td>—</td>
+                    <td>{{ vulnerabilities|length }}</td>
+                    <td>—</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <p style="font-size: 11px; color: #94a3b8; margin-top: 8px;">
+            * 評等依據：CVSS 可利用性分數 × 業務資料影響評估。AI 分析由 OpenAI GPT 模型提供。
+        </p>
+
+        <!-- 詳細發現 -->
+        <h2 style="page-break-before: always;">2. 稽核發現與 AI 修復方案 (Findings & Remediation)</h2>
+
+        {% for vuln in vulnerabilities %}
+        <div class="vuln-item">
+
+            <!-- 標頭 -->
+            <div class="vuln-header">
+                <span class="vuln-title">{{ loop.index }}. {{ vuln.remediation.title }}</span>
+                <div class="badge-group">
+                    <span
+                        class="priority-badge priority-{{ (vuln.remediation.priority or 'High')|lower|replace(' ', '') }}">
+                        ⚡ {{ vuln.remediation.priority or 'High' }}
+                    </span>
+                    <span class="severity-badge sev-{{ vuln.severity|lower }}">{{ vuln.severity }}</span>
+                </div>
+            </div>
+
+            <div class="vuln-body">
+
+                <!-- 端點 -->
+                <div class="endpoint-tag">{{ vuln.endpoint }}</div>
+
+                <!-- A. 業務影響 -->
+                <div class="section-block">
+                    <div class="impact-block">
+                        <span class="section-label">A｜業務影響評估 (Business Impact)</span>
+                        <div class="section-text">{{ vuln.remediation.business_impact or vuln.remediation.impact }}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- B. 根因 & 技術分析 -->
+                <div class="section-block">
+                    <span class="section-label">B｜技術根因分析 (Root Cause & Technical Analysis)</span>
+                    {% if vuln.remediation.root_cause %}
+                    <div class="section-text" style="margin-bottom:8px;">
+                        <strong>根因：</strong>{{ vuln.remediation.root_cause }}
+                    </div>
+                    {% endif %}
+                    <div class="section-text" style="margin-bottom:8px;">
+                        <strong>技術分析：</strong>{{ vuln.remediation.technical_analysis or "基於自動化掃描行為特徵判定。" }}
+                    </div>
+                    <div><strong>偵測證據 (Evidence)：</strong></div>
+                    <div class="evidence-block">{{ vuln.evidence }}</div>
+                </div>
+
+                <!-- C. AI 修復方案 -->
+                <div class="section-block">
+                    <div class="remediation-block">
+                        <span class="section-label">
+                            C｜AI 修復方案 (Remediation Steps)
+                            <span class="ai-label">✨ AI</span>
+                        </span>
+                        {% set steps = vuln.remediation.remediation_steps or vuln.remediation.solution %}
+                        {% if steps %}
+                        <ol class="remediation-steps">
+                            {% for line in steps.split('\n') %}
+                            {% if line.strip() %}
+                            <li>{{ line.strip().lstrip('0123456789. ') }}</li>
+                            {% endif %}
+                            {% endfor %}
+                        </ol>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- D. 程式碼範例 -->
+                {% if vuln.remediation.code_example %}
+                <div class="section-block">
+                    <span class="section-label">D｜修復程式碼範例 (Code Example)</span>
+                    <div class="code-block-wrapper">
+                        <div class="code-block-header">▸ Recommended Implementation</div>
+                        <div class="code-block-body">{{ vuln.remediation.code_example | replace('```python', '') |
+                            replace('```', '') | trim }}</div>
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- E. 合規映射 -->
+                <div class="section-block">
+                    <div class="compliance-block">
+                        <span class="section-label">E｜合規框架映射 (Compliance Mapping)</span>
+                        <div class="compliance-text">{{ vuln.remediation.compliance_standards or
+                            vuln.remediation.best_practice }}</div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+        {% endfor %}
+
+        <!-- 合規總結 -->
+        <div style="page-break-before: always; padding-top: 20px;">
+            <h2>3. 合規性聲明 (Compliance Statement)</h2>
+            <p style="font-size: 13px; color: #475569;">本報告之稽核基準及修復建議參照以下國際安全框架：</p>
+            <table class="summary-table">
+                <thead>
+                    <tr>
+                        <th>框架</th>
+                        <th>適用範圍</th>
+                        <th>關聯發現類型</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>OWASP API Security Top 10 (2023)</strong></td>
+                        <td>Web API 通用漏洞</td>
+                        <td>BFLA, BOLA, Data Exposure</td>
+                    </tr>
+                    <tr>
+                        <td><strong>GDPR Article 25 / 32</strong></td>
+                        <td>個人資料保護</td>
+                        <td>Data Exposure, Missing Headers</td>
+                    </tr>
+                    <tr>
+                        <td><strong>PCI-DSS v4.0 Req 6.4</strong></td>
+                        <td>支付卡資料安全</td>
+                        <td>BFLA, Authentication</td>
+                    </tr>
+                    <tr>
+                        <td><strong>NIST SP 800-53 Rev.5</strong></td>
+                        <td>存取控制 (AC) 系列</td>
+                        <td>Authorization failures</td>
+                    </tr>
+                    <tr>
+                        <td><strong>ISO/IEC 27001:2022 A.8.4</strong></td>
+                        <td>存取資訊和資產</td>
+                        <td>All High/Medium findings</td>
+                    </tr>
+                </tbody>
+            </table>
+            <p style="font-size: 11px; color: #94a3b8; margin-top: 16px;">
+                本報告由 AI API Security Scanner 自動生成，AI 分析輔助由 OpenAI GPT-3.5-turbo 提供。
+                本報告僅作為技術參考，最終修復方案應由具資格的安全工程師審核確認。
+            </p>
+        </div>
+    </div>
+
+    <div class="report-footer">
+        🛡️ AI API Security Scanner · Scan #{{ scan_id }} · {{ generated_at }} · CONFIDENTIAL
+    </div>
+</body>
+
+</html>

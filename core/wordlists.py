@@ -1,0 +1,53 @@
+# Sensitive Fields Wordlist for Mass Assignment Detection
+
+SENSITIVE_FIELDS = [
+    "admin",
+    "is_admin",
+    "isAdmin",
+    "role",
+    "roles",
+    "privilege",
+    "privileges",
+    "permissions",
+    "permission",
+    "superuser",
+    "is_superuser",
+    "user_type",
+    "account_type",
+    "access_level",
+    "is_staff",
+    "is_internal",
+    "internal",
+    "debug",
+    "can_debug",
+    "is_verified",
+    "verified",
+    "status",
+    "locked",
+    "is_locked",
+    "credits",
+    "balance",
+    "owner",
+    "is_owner"
+]
+
+SENSITIVE_RESPONSE_FIELDS = [
+    "password",
+    "password_hash",
+    "hash",
+    "salt",
+    "token",
+    "secret",
+    "secret_key",
+    "ssn",
+    "social_security",
+    "credit_card",
+    "creditcard",
+    "cvv",
+    "birthday",
+    "birthdate",
+    "private_key",
+    "api_key",
+    "apikey",
+    "auth_token"
+]

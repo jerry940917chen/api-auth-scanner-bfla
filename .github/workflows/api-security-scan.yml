@@ -1,0 +1,54 @@
+name: API Security Scan
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    
+    services:
+      # Optional: Start your target API here if it's part of the same repo
+      # demo-api:
+      #   image: jerry940917chen/demo-api:latest
+      #   ports:
+      #     - 5001:5001
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Install CI Dependencies
+        run: pip install requests
+
+      - name: Start Scanner Stack
+        run: |
+          docker-compose up -d scanner demo_api
+          # Wait for scanner to be healthy
+          timeout 60s bash -c 'until curl -s http://localhost:8000/health; do sleep 2; done'
+        
+      - name: Run API Security Scan
+        env:
+          TEST_USER_TOKEN: ${{ secrets.TEST_USER_TOKEN }}
+        run: |
+          # Assuming Project ID 1 is the default demo project
+          python scripts/ci_scan.py \
+            --scanner-url "http://localhost:8000" \
+            --project-id 1 \
+            --auth-token "$TEST_USER_TOKEN"
+            
+      - name: Upload AI Audit Report
+        if: always() # Ensure report is uploaded even if the build fails (sys.exit(1))
+        uses: actions/upload-artifact@v4
+        with:
+          name: API-Security-Audit-Report
+          path: api_audit_report.pdf

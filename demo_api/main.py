@@ -3,7 +3,6 @@ from pydantic import BaseModel
 from typing import Optional, List
 import jwt
 import os
-from datetime import datetime, timedelta
 
 app = FastAPI(title="Vulnerable Demo API", version="1.0.0")
 
@@ -39,9 +38,8 @@ class PromoteRequest(BaseModel):
 
 # 輔助函數
 def create_access_token(data: dict):
-    to_encode = data.copy()
-    to_encode.update({"exp": datetime.utcnow() + timedelta(minutes=30)})
-    return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+    """產生不過期的研究用 Token。"""
+    return jwt.encode(data.copy(), SECRET_KEY, algorithm=ALGORITHM)
 
 def get_current_user_token(authorization: str = Header(None)):
     if not authorization:

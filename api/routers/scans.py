@@ -13,6 +13,10 @@ from api.schemas import ScanCreate, ScanResponse, ScanOptions, ReportResponse
 router = APIRouter(tags=["scans"]) 
 logger = logging.getLogger("api.scans")
 
+@router.get("/health")
+def health_check():
+    return {"status": "ok"}
+
 @router.post("/projects/{project_id}/scans", response_model=dict, status_code=202)
 async def start_scan(
     project_id: int, 
@@ -84,6 +88,54 @@ def cancel_scan(scan_id: int, db: Session = Depends(get_db)):
         
     return {"status": "canceled"}
 
+@router.get("/scans/{scan_id}/auth-matrix")
+def get_auth_matrix(scan_id: int, db: Session = Depends(get_db)):
+    """
+    Returns an Auth Matrix: for each endpoint, whether access was allowed/denied/unknown.
+    This shows which roles can access which endpoints — the core differentiator vs Burp/AppScan.
+    """
+    repo = ScanRepository(db)
+    scan = repo.get(scan_id)
+    if not scan:
+        raise HTTPException(status_code=404, detail="Scan not found")
+
+    vulns = scan.vulnerabilities or []
+    
+    # Gather all unique endpoints from scan
+    all_endpoints = list({v.endpoint for v in vulns})
+    
+    # Gather roles from profiles
+    profiles = scan.profiles or []
+    roles = list({p.role for p in profiles}) if profiles else ["user"]
+    
+    # Build matrix: endpoint -> role -> result
+    # BFLA vuln = endpoint accessible by role that shouldn't have access
+    matrix = {}
+    for ep in all_endpoints:
+        ep_vulns = [v for v in vulns if v.endpoint == ep]
+        matrix[ep] = {}
+        for role in roles:
+            bfla_vuln = next((v for v in ep_vulns if v.vuln_type in ["BFLA", "Broken Authentication"]), None)
+            if bfla_vuln:
+                matrix[ep][role] = {"status": "vulnerable", "severity": bfla_vuln.severity, "vuln_type": bfla_vuln.vuln_type}
+            elif any(v for v in ep_vulns if v.vuln_type == "BOLA"):
+                matrix[ep][role] = {"status": "vulnerable", "severity": "High", "vuln_type": "BOLA"}
+            else:
+                # Check if endpoint has any non-auth related findings
+                other_vulns = [v for v in ep_vulns if v.vuln_type not in ["BFLA", "BOLA", "Broken Authentication"]]
+                if other_vulns:
+                    matrix[ep][role] = {"status": "allowed", "severity": other_vulns[0].severity, "vuln_type": other_vulns[0].vuln_type}
+                else:
+                    matrix[ep][role] = {"status": "secure", "severity": None, "vuln_type": None}
+
+    return {
+        "scan_id": scan_id,
+        "roles": roles,
+        "endpoints": all_endpoints,
+        "matrix": matrix
+    }
+
+
 @router.get("/scans/{scan_id}/report.json", response_model=ReportResponse)
 def get_report_json(scan_id: int, db: Session = Depends(get_db)):
     # Inline implementation to avoid ReportService/WeasyPrint crash
@@ -100,6 +152,32 @@ def get_report_json(scan_id: int, db: Session = Depends(get_db)):
     }
 
 @router.get("/scans/{scan_id}/report.pdf")
-def get_report_pdf(scan_id: int, db: Session = Depends(get_db)):
-    # PDF generation disabled due to environment issues with WeasyPrint
-    return Response(content=b"PDF reporting disabled in MVP", media_type="text/plain")
+async def get_report_pdf(scan_id: int, db: Session = Depends(get_db)):
+    repo = ScanRepository(db)
+    scan = repo.get(scan_id)
+    if not scan:
+        raise HTTPException(status_code=404, detail="Scan not found")
+    
+    from scanner.services.reporting_service import ReportingService
+    from datetime import datetime
+    
+    report_data = {
+        "generated_at": datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S"),
+        "project": scan.project,
+        "scan": scan
+    }
+    
+    try:
+        report_service = ReportingService()
+        pdf_bytes = await report_service.generate_pdf_report(report_data)
+        
+        return Response(
+            content=pdf_bytes,
+            media_type="application/pdf",
+            headers={
+                "Content-Disposition": f"attachment; filename=audit_report_{scan_id}.pdf"
+            }
+        )
+    except Exception as e:
+        logger.error(f"PDF generation failed: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to generate PDF: {e}")

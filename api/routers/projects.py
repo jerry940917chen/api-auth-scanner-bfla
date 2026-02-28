@@ -24,3 +24,23 @@ def get_project(project_id: int, db: Session = Depends(get_db)):
     if not project:
         raise HTTPException(status_code=404, detail="Project not found")
     return project
+
+@router.delete("/{project_id}", status_code=204)
+def delete_project(project_id: int, db: Session = Depends(get_db)):
+    repo = ProjectRepository(db)
+    project = repo.get(project_id)
+    if not project:
+        raise HTTPException(status_code=404, detail="Project not found")
+    repo.delete(project_id)
+    return None
+
+@router.patch("/{project_id}", response_model=ProjectResponse)
+def update_project(project_id: int, project_in: dict, db: Session = Depends(get_db)):
+    repo = ProjectRepository(db)
+    project = repo.get(project_id)
+    if not project:
+        raise HTTPException(status_code=404, detail="Project not found")
+    
+    # Update only provided fields
+    updated_project = repo.update(project_id, project_in)
+    return updated_project

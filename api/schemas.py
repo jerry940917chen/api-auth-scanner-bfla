@@ -51,6 +51,21 @@ class ScanOptions(BaseModel):
     concurrency: int = 5
     include_paths: Optional[List[str]] = None
     exclude_paths: Optional[List[str]] = None
+    
+    # Advanced Enterprise Config
+    bola_extraction_paths: Optional[List[str]] = Field(
+        default_factory=list, 
+        description="Endpoints to harvest IDs from for Cross-User BOLA testing"
+    )
+    custom_headers: Optional[Dict[str, str]] = Field(
+        default_factory=dict,
+        description="Custom headers injected into every request (e.g., X-Forwarded-For)"
+    )
+    auth_bypass_techniques: bool = Field(
+        default=False,
+        description="Enable JWT signature stripping and HTTP parameter pollution checks"
+    )
+
 
 class ScanCreate(BaseModel):
     profiles: List[ScanProfileCreate]
